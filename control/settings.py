@@ -9,8 +9,12 @@ https://docs.djangoproject.com/en/6.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
-
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+from datetime import timedelta
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-hnii77-u!zden+1y!6!@+cighxz79glthm!-s_ba0mb0#lwl*8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -40,18 +44,43 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'pilot',
-
-
+    'rest_framework_simplejwt',
 ]
 
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-
+    # 'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
 }
+
+
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Время жизни access-токена
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Время жизни refresh-токена
+    'ROTATE_REFRESH_TOKENS': False,                 # Возвращать новый refresh-токен при обновлении
+    'BLACKLIST_AFTER_ROTATION': False,              # Добавлять ли использованный refresh-токен в чёрный список
+    'ALGORITHM': 'HS256',                        # Алгоритм подписи
+    'SIGNING_KEY': SECRET_KEY,                   # Секретный ключ (рекомендуется использовать settings.SECRET_KEY)
+    'VERIFYING_KEY': '',                         # Ключ для проверки (может быть пустым для симметричных алгоритмов)
+    'AUDIENCE': None,                          # Аудитория
+    'ISSUER': None,                             # Издатель
+    'LEEWAY': 0,                                # Допустимое отклонение времени (для сравнения с expire)
+    'AUTH_HEADER_TYPES': ('Bearer',),          # Типы заголовков аутентификации
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',  # Имя заголовка с токеном
+    'USER_ID_FIELD': 'id',                      # Поле модели пользователя для извлечения ID
+    'USER_ID_CLAIM': 'user_id',                  # Ключ в полезной нагрузке, содержащий ID пользователя
+}
+
 
 
 SPECTACULAR_SETTINGS = {
@@ -59,6 +88,18 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Пилотный проект системы контроля доступов на Django',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+
+    'SECURITY': [{'jwtAuth': []}],
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'jwtAuth': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+                'description': 'Введите ваш JWT токен доступа (access), полученный из /api/token/. Слово Bearer подставится автоматически.',
+            }
+        }
+    }
 }
 
 
@@ -97,8 +138,12 @@ WSGI_APPLICATION = 'control.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'myproject'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'your_password'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -126,9 +171,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -139,6 +184,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # Email

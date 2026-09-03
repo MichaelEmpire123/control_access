@@ -18,6 +18,15 @@ class User(AbstractUser):
         default='Contractor',
     )
 
+    contractor = models.ForeignKey(
+        'Contractor',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Подрядчик',
+        help_text='Для роли "Подрядчик" - его компания'
+    )
+
     def __str__(self):
         return self.username
 
@@ -33,7 +42,7 @@ class Contractor(models.Model):
         ('Noaccreditate', 'Неаккредитован'),
     )
 
-    inn = models.IntegerField(max_length=12)
+    inn = models.CharField(max_length=12)
     name = models.CharField(max_length=120)
     status_accreditation = models.CharField(
         max_length=20,
