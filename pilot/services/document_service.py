@@ -9,7 +9,7 @@ class DocumentService(BaseService):
     @classmethod
     def create_document(cls, data):
         document = cls.create(data)
-        contractor_id = data.get('contractor_id')
+        contractor_id = data.get('id_contractor')
         ContractorService.recheck_accreditation(contractor_id)
         return document
 
@@ -19,7 +19,7 @@ class DocumentService(BaseService):
         if not document:
             return False
 
-        contractor_id = document.contractor_id
+        contractor_id = document.id_contractor_id
         document.delete()
         ContractorService.recheck_accreditation(contractor_id)
         return True

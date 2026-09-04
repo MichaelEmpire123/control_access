@@ -14,8 +14,15 @@ class ContractorService(BaseService):
         return cls.model.objects.get(inn=inn)
 
     @classmethod
+    def create_contractor_with_check(cls, data):
+        existing = cls.get_by_inn(data.get('inn'))
+        if existing:
+            raise ValueError(f"Компания с паспортом {data.get('inn')} уже существует")
+        return cls.create(data)
+
+    @classmethod
     def check_compliance(cls, contractor_id):
-        docs = ComplianceDocument.objects.filter(contractor_id=contractor_id)
+        docs = ComplianceDocument.objects.filter(id_contractor_id=contractor_id)
         today = date.today()
 
         # Проверяем просроченные документы
@@ -72,7 +79,7 @@ class ContractorService(BaseService):
         if not contractor:
             return None
 
-        docs = ComplianceDocument.objects.filter(contractor_id=contractor_id)
+        docs = ComplianceDocument.objects.filter(id_contractor_id=contractor_id)
         today = date.today()
 
         # Проверяем все документы

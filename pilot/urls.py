@@ -15,13 +15,14 @@ from pilot.views import UserListView, UserCreateView, UserUpdateView, Contractor
     DocumentByContractorView, EmployeeListView, EmployeeCreateView, EmployeeDetailView, EmployeeUpdateView, \
     EmployeeDeleteView, EmployeeByContractorView, PassListView, PassCreateView, PassDetailView, PassUpdateView, \
     PassDeleteView, PassActivateView, PassDeactivateView, PassCheckView, PassByEmployeeView, BlacklistListView, \
-    BlacklistAddView, BlacklistRemoveView, BlacklistCheckView, UserMeView
+    BlacklistAddView, BlacklistRemoveView, BlacklistCheckView, UserMeView, GetUserID
 
 urlpatterns = [
     path('userlist/', UserListView.as_view(), name='user_list'),
     path('user_create/', UserCreateView.as_view(), name='user_create'),
     path('user_update/<int:pk>/', UserUpdateView.as_view(), name='user_update'),
     path('user/me', UserMeView.as_view(), name='user_me'),
+    path('get_user/<int:pk>', GetUserID.as_view(), name='user_list_id'),
 
     # ============ CONTRACTORS ============
     path('contractors/get_contractors/', ContractorListView.as_view(), name='contractor_list'),
@@ -29,10 +30,8 @@ urlpatterns = [
     path('contractors/get_contractor/<int:pk>/', ContractorDetailView.as_view(), name='contractor_detail'),
     path('contractors/update_contractor/<int:pk>/', ContractorUpdateView.as_view(), name='contractor_update'),
     path('contractors/delete_contractor/<int:pk>/', ContractorDeleteView.as_view(), name='contractor_delete'),
-    path('contractors/check_compliance/<int:pk>/', ContractorComplianceView.as_view(),
-         name='contractor_compliance'),
-    path('contractors/recheck_accreditation/<int:pk>/', ContractorRecheckView.as_view(),
-         name='contractor_recheck'),
+    path('contractors/check_compliance/<int:pk>/', ContractorComplianceView.as_view(), name='contractor_compliance'),
+    path('contractors/recheck_accreditation/<int:pk>/', ContractorRecheckView.as_view(), name='contractor_recheck'),
 
     # ============ DOCUMENTS ============
     path('documents/get_documents/', DocumentListView.as_view(), name='document_list'),

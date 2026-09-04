@@ -1,7 +1,11 @@
+from typing import Any
+
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, status
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from pilot.models import User, Contractor, ComplianceDocument, ContractorEmployee, AccessPass, Blacklist
@@ -18,25 +22,37 @@ from .services.contractor_service import ContractorService, EmployeeService
 from .services.document_service import DocumentService
 from .utils import ComplianceError, BlacklistError
 
-
+@extend_schema(summary='Вывод всех пользователей системы')
 # Работа с User
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminOrManager]
 
+@extend_schema(summary='Вывод конкретного пользователя')
+class GetUserID(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrManager]
 
+    def retrieve(self, request: Request, *args: Any, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+@extend_schema(summary='Создать пользователя')
 class UserCreateView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminOrManager]
 
+@extend_schema(summary='Изменить данные пользователя')
 class UserUpdateView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminOrManager]
 
-
+@extend_schema(summary='Проверка текущего пользлователя')
 class UserMeView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -47,6 +63,7 @@ class UserMeView(generics.RetrieveAPIView):
 
 # Работа с Contractor
 
+@extend_schema(summary='Список подрядчиков')
 class ContractorListView(generics.ListAPIView):
     serializer_class = ContractorSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -64,7 +81,7 @@ class ContractorListView(generics.ListAPIView):
             return Contractor.objects.filter(id=user.contractor.id)
         return Contractor.objects.none()
 
-
+@extend_schema(summary='Создать подрядчика')
 class ContractorCreateView(generics.CreateAPIView):
     serializer_class = ContractorSerializer
     permission_classes = [permissions.IsAuthenticated, CanManageContractors]
@@ -72,13 +89,13 @@ class ContractorCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         return ContractorService.create(serializer.validated_data)
 
-
+@extend_schema(summary='Просмотр данных конкретного подрядчика по айди')
 class ContractorDetailView(generics.RetrieveAPIView):
     serializer_class = ContractorSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = Contractor.objects.all()
 
-
+@extend_schema(summary='Измена данных подрядчика')
 class ContractorUpdateView(generics.UpdateAPIView):
     serializer_class = ContractorSerializer
     permission_classes = [permissions.IsAuthenticated, CanManageContractors]
@@ -91,7 +108,7 @@ class ContractorUpdateView(generics.UpdateAPIView):
         contractor = ContractorService.update(instance.id, serializer.validated_data)
         return Response(ContractorSerializer(contractor).data)
 
-
+@extend_schema(summary='Удалить подрядчика')
 class ContractorDeleteView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
     queryset = Contractor.objects.all()
@@ -104,7 +121,7 @@ class ContractorDeleteView(generics.DestroyAPIView):
             status=status.HTTP_200_OK
         )
 
-
+@extend_schema(summary='Проверка аккредитованности подрядчика')
 class ContractorComplianceView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -143,13 +160,14 @@ class DocumentListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = PageNumberPagination
     filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['type', 'id_contractor']
 
     def get_queryset(self):
         user = self.request.user
         if user.role in ['Admin', 'Manager', 'Security']:
             return ComplianceDocument.objects.all()
         if user.role == 'Contractor' and user.contractor:
-            return ComplianceDocument.objects.filter(contractor_id=user.contractor.id)
+            return ComplianceDocument.objects.filter(id_contractor_id=user.contractor.id)
         return ComplianceDocument.objects.none()
 
 
@@ -191,7 +209,7 @@ class DocumentByContractorView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        contractor_id = self.kwargs['contractor_id']
+        contractor_id = self.kwargs['id_contractor']
         user = self.request.user
 
         # Проверка прав: если не Admin/Manager/Security, то только свой подрядчик
@@ -202,7 +220,7 @@ class DocumentByContractorView(generics.ListAPIView):
             else:
                 return ComplianceDocument.objects.none()
 
-        return ComplianceDocument.objects.filter(contractor_id=contractor_id)
+        return ComplianceDocument.objects.filter(contractor_id=user.contractor.id)
 
 
 class EmployeeListView(generics.ListAPIView):
