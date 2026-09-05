@@ -85,13 +85,24 @@ class ComplianceDocument(models.Model):
 
 class ContractorEmployee(models.Model):
     id_contractor = models.ForeignKey(Contractor, on_delete=models.CASCADE)
-    name = models.CharField(max_length=120)
     first_name = models.CharField(max_length=120)
-    last_name = models.CharField(max_length=120)
+    last_name = models.CharField(max_length=120, verbose_name='Фамилия')
+    patronymic = models.CharField(max_length=120)
     passport = models.CharField(max_length=11)
 
+    @property
+    def full_name(self):
+        """Полное имя сотрудника"""
+        parts = [self.last_name, self.first_name]
+        if self.patronymic:
+            parts.append(self.patronymic)
+        return ' '.join(parts)
+
     def __str__(self):
-        return f"{self.last_name} {self.first_name} {self.name}".strip()  # Исправлено (был кортеж)
+        return self.full_name
+
+    def __str__(self):
+        return f"{self.last_name} {self.first_name} {self.name}".strip()
 
     class Meta:
         db_table = 'contractor_employee'
@@ -134,8 +145,8 @@ class AccessPass(models.Model):
 
 class Blacklist(models.Model):
     TYPE_CHOICES = (
-        ('Yurlico', 'Юрлицо'),  # Contractor (компания)
-        ('Fizlico', 'Физлицо'),  # ContractorEmployee (сотрудник)
+        ('Yurlico', 'Юрлицо'),
+        ('Fizlico', 'Физлицо'),
     )
 
     # Для юрлица - это ID Contractor, для физлица - ID ContractorEmployee
@@ -144,6 +155,7 @@ class Blacklist(models.Model):
         choices=TYPE_CHOICES,
         verbose_name='Тип сущности'
     )
+
     entity_id = models.CharField(
         max_length=36,
         verbose_name='ID сущности',
@@ -157,6 +169,8 @@ class Blacklist(models.Model):
         null=True,
         verbose_name='Добавил'
     )
+
+
 
     def __str__(self):
         return f"{self.get_entity_type_display()} (ID: {self.entity_id}) - {self.reason[:30]}"
