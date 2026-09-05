@@ -306,6 +306,10 @@ class PassCreateView(BaseCreateView):
     permission_classes = [permissions.IsAuthenticated, CanManagePasses]
 
     def perform_create(self, serializer):
+        # Логируем валидированные данные
+        print(f"PassCreateView.perform_create: validated_data = {serializer.validated_data}")
+
+        # Передаем данные в сервис
         return AccessPassService.create_pass(serializer.validated_data)
 
 

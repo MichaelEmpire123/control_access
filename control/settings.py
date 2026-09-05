@@ -66,8 +66,8 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Время жизни access-токена
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Время жизни refresh-токена
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Время жизни access-токена
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=2),    # Время жизни refresh-токена
     'ROTATE_REFRESH_TOKENS': False,                 # Возвращать новый refresh-токен при обновлении
     'BLACKLIST_AFTER_ROTATION': False,              # Добавлять ли использованный refresh-токен в чёрный список
     'ALGORITHM': 'HS256',                        # Алгоритм подписи

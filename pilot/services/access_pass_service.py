@@ -13,31 +13,48 @@ class AccessPassService(BaseService):
     @classmethod
     @transaction.atomic
     def create_pass(cls, data):
-        employee_id = data.get('employee_id')
-        employee = EmployeeService.get_by_id(employee_id)
-        if not employee:
-            raise ValueError("Сотрудник не найден")
+        # Получаем сотрудника из данных
+        employee = data.get('id_employee')
 
-        # Проверка черного списка
+        # Если employee - это число (ID), ищем сотрудника
+        if isinstance(employee, int):
+            employee_obj = EmployeeService.get_by_id(employee)
+            if not employee_obj:
+                raise ValueError(f"Сотрудник с ID {employee} не найден")
+            employee = employee_obj
+
+        # Если employee - это объект, берем его ID
+        if hasattr(employee, 'id'):
+            employee_id = employee.id
+            employee_obj = employee
+        else:
+            raise ValueError("Некорректные данные сотрудника")
+
+        # Проверка черного списка (сотрудник)
         if BlacklistService.is_blacklisted('Fizlico', employee_id):
             raise BlacklistError("Сотрудник в черном списке", 'Fizlico', employee_id)
 
-        if BlacklistService.is_blacklisted('Yurlico', employee.contractor_id):
-            raise BlacklistError("Компания в черном списке", 'Yurlico', employee.contractor_id)
+        # Проверка черного списка (компания)
+        if BlacklistService.is_blacklisted('Yurlico', employee_obj.id_contractor_id):
+            raise BlacklistError("Компания в черном списке", 'Yurlico', employee_obj.id_contractor_id)
 
         # Проверка комплаенса
-        ContractorService.check_compliance(employee.contractor_id)
+        ContractorService.check_compliance(employee_obj.id_contractor_id)
 
-        return cls.create(data)
+        # Создаем пропуск - передаем объект сотрудника
+        create_data = data.copy()
+        create_data['id_employee'] = employee_obj
+
+        return cls.create(create_data)
 
     @classmethod
     def get_by_employee(cls, employee_id):
-        return cls.model.objects.filter(employee_id=employee_id)
+        return cls.model.objects.filter(id_employee_id=employee_id)
 
     @classmethod
     def check_pass_status(cls, employee_id):
         passes = cls.model.objects.filter(
-            employee_id=employee_id,
+            id_employee_id=employee_id,
             status='active'
         )
         return {
