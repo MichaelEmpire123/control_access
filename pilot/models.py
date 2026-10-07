@@ -114,8 +114,8 @@ class AccessPass(models.Model):
     STATUS_CHOICES = (
         ('active', 'Активен'),
         ('passive', 'Неактивен'),
-        ('pending', 'Ожидает одобрения'),  # ✅ НОВЫЙ СТАТУС
-        ('rejected', 'Отклонен'),  # ✅ НОВЫЙ СТАТУС
+        ('pending', 'Ожидает одобрения'),
+        ('rejected', 'Отклонен'),
     )
     TYPE_CHOICES = (
         ('permanent', 'Постоянный'),
@@ -133,11 +133,11 @@ class AccessPass(models.Model):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='pending',  # ✅ ИЗМЕНЕНО: теперь по умолчанию ожидает одобрения
+        default='pending',
     )
-    expiration_date = models.DateField(null=True, blank=True)  # ✅ ДОБАВЛЕНО
+    expiration_date = models.DateField(null=True, blank=True)
 
-    # ✅ НОВЫЕ ПОЛЯ ДЛЯ ОТСЛЕЖИВАНИЯ ЗАЯВКИ
+
     requested_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
