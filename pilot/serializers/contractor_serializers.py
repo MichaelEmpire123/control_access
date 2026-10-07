@@ -9,6 +9,8 @@ class ContractorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+
+
 class EmployeeSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
 

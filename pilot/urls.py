@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularJSONAPIView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -25,7 +25,7 @@ from pilot.views import (
     PassDeleteView, PassActivateView, PassDeactivateView,
     PassCheckView, PassByEmployeeView,
     # Blacklist
-    BlacklistListView, BlacklistAddView, BlacklistRemoveView, BlacklistCheckView,
+    BlacklistListView, BlacklistAddView, BlacklistRemoveView
 )
 
 
@@ -82,13 +82,14 @@ urlpatterns = [
     path('passes/check/', PassCheckView.as_view(), name='pass_check'),
     path('passes/by-employee/<int:employee_id>/', PassByEmployeeView.as_view(), name='pass_by_employee'),
 
+
+
     # ============ BLACKLIST ============
     path('blacklist/', BlacklistListView.as_view(), name='blacklist_list'),
     path('blacklist/add/', BlacklistAddView.as_view(), name='blacklist_add'),
     path('blacklist/<int:pk>/remove/', BlacklistRemoveView.as_view(), name='blacklist_remove'),
-    path('blacklist/check/', BlacklistCheckView.as_view(), name='blacklist_check'),
 
     # ============ SCHEMA & DOCS ============
-    path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('schema/', SpectacularJSONAPIView.as_view(), name='schema'),
     path('docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]

@@ -69,3 +69,5 @@ class AccessPassService(BaseService):
     @classmethod
     def deactivate_pass(cls, pass_id):
         return cls.update(pass_id, {'status': 'passive'})
+
+

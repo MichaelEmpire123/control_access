@@ -114,6 +114,8 @@ class AccessPass(models.Model):
     STATUS_CHOICES = (
         ('active', 'Активен'),
         ('passive', 'Неактивен'),
+        ('pending', 'Ожидает одобрения'),  # ✅ НОВЫЙ СТАТУС
+        ('rejected', 'Отклонен'),  # ✅ НОВЫЙ СТАТУС
     )
     TYPE_CHOICES = (
         ('permanent', 'Постоянный'),
@@ -131,8 +133,30 @@ class AccessPass(models.Model):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='active',
+        default='pending',  # ✅ ИЗМЕНЕНО: теперь по умолчанию ожидает одобрения
     )
+    expiration_date = models.DateField(null=True, blank=True)  # ✅ ДОБАВЛЕНО
+
+    # ✅ НОВЫЕ ПОЛЯ ДЛЯ ОТСЛЕЖИВАНИЯ ЗАЯВКИ
+    requested_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='requested_passes',
+        verbose_name='Запросил'
+    )
+    approved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_passes',
+        verbose_name='Одобрил'
+    )
+    request_date = models.DateTimeField(auto_now_add=True, verbose_name='Дата запроса')
+    approve_date = models.DateTimeField(null=True, blank=True, verbose_name='Дата одобрения')
+    rejection_reason = models.TextField(null=True, blank=True, verbose_name='Причина отклонения')
 
     def __str__(self):
         return f"{self.type} - {self.zona_access} - {self.status}"

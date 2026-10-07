@@ -103,6 +103,9 @@ class ContractorService(BaseService):
             return cls._update_accreditation(contractor_id, 'Noaccreditate')
 
 
+
+
+
 class EmployeeService(BaseService):
     model = ContractorEmployee
 

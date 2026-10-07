@@ -451,6 +451,7 @@ class BlacklistAddView(BaseCreateView):
         )
 
 
+
 @extend_schema(summary='Удалить из черного списка')
 class BlacklistRemoveView(BaseDeleteView):
     queryset = Blacklist.objects.all()
@@ -459,37 +460,3 @@ class BlacklistRemoveView(BaseDeleteView):
 
     def get_success_message(self):
         return 'Запись удалена из черного списка'
-
-
-@extend_schema(summary='Проверить в черном списке (НЕРАБОТАЕТ')
-class BlacklistCheckView(BaseActionView):
-    permission_classes = [permissions.IsAuthenticated, IsAdminOrSecurity]
-    serializer_class = BlacklistSerializer
-
-    def get(self, request):
-        entity_type = request.query_params.get('entity_type')
-        entity_id = request.query_params.get('entity_id')
-
-        if not all([entity_type, entity_id]):
-            return Response(
-                {'error': 'Необходимы параметры: entity_type, entity_id'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        is_blacklisted = BlacklistService.is_blacklisted(entity_type, entity_id)
-
-        if is_blacklisted:
-            entry = Blacklist.objects.filter(
-                entity_type=entity_type,
-                entity_id=str(entity_id)
-            ).first()
-
-            return Response({
-                'is_blacklisted': True,
-                'reason': entry.reason if entry else None,
-                'date_added': entry.date if entry else None
-            })
-        else:
-            return Response({
-                'is_blacklisted': False
-            })
